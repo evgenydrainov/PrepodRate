@@ -4,4 +4,10 @@
 
 <h1>Hello, world!</h1>
 
+<AuthorizeView>
+	@if (context.User.IsInRole("Oleg")) {
+		<h1>HELLO, OLEG!!!</h1>
+	}
+</AuthorizeView>
+
 Welcome to your new app.

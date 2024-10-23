@@ -9,7 +9,7 @@ namespace PrepodRate
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -31,10 +31,11 @@ namespace PrepodRate
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlite(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddSignInManager()
                 .AddDefaultTokenProviders();
@@ -62,6 +63,23 @@ namespace PrepodRate
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
+
+            using (var scope = app.Services.CreateScope()) {
+                using (var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>()) {
+                    await context.Database.EnsureCreatedAsync();
+                }
+            }
+
+            using (var scope = app.Services.CreateScope()) {
+                using (var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>()) {
+                    var roles = new[] { "Oleg", "Admin", "Manager", "Member" };
+                    foreach (var role in roles) {
+                        if (!await roleManager.RoleExistsAsync(role)) {
+                            await roleManager.CreateAsync(new IdentityRole(role));
+                        }
+                    }
+                }
+            }
 
             app.Run();
         }
