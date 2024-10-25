@@ -5,83 +5,84 @@ using PrepodRate.Components;
 using PrepodRate.Components.Account;
 using PrepodRate.Data;
 
-namespace PrepodRate
-{
-    public class Program
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+builder.Services.AddControllers();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityUserAccessor>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Services.AddAuthentication(options =>
     {
-        public static async Task Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    })
+    .AddIdentityCookies();
 
-            // Add services to the container.
-            builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(connectionString));
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddCascadingAuthenticationState();
-            builder.Services.AddScoped<IdentityUserAccessor>();
-            builder.Services.AddScoped<IdentityRedirectManager>();
-            builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
 
-            builder.Services.AddAuthentication(options =>
-                {
-                    options.DefaultScheme = IdentityConstants.ApplicationScheme;
-                    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-                })
-                .AddIdentityCookies();
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+var app = builder.Build();
 
-            builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddSignInManager()
-                .AddDefaultTokenProviders();
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseMigrationsEndPoint();
+}
+else
+{
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
 
-            builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+app.UseHttpsRedirection();
 
-            var app = builder.Build();
+app.UseStaticFiles();
+app.UseAntiforgery();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment()) {
-                app.UseMigrationsEndPoint();
-            } else {
-                app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
+app.MapControllers();
 
-            app.UseHttpsRedirection();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
-            app.UseStaticFiles();
-            app.UseAntiforgery();
+// Add additional endpoints required by the Identity /Account Razor components.
+app.MapAdditionalIdentityEndpoints();
 
-            app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
-
-            // Add additional endpoints required by the Identity /Account Razor components.
-            app.MapAdditionalIdentityEndpoints();
-
-            using (var scope = app.Services.CreateScope()) {
-                using (var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>()) {
-                    await context.Database.EnsureCreatedAsync();
-                }
-            }
-
-            using (var scope = app.Services.CreateScope()) {
-                using (var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>()) {
-                    var roles = new[] { "Oleg", "Admin", "Manager", "Member" };
-                    foreach (var role in roles) {
-                        if (!await roleManager.RoleExistsAsync(role)) {
-                            await roleManager.CreateAsync(new IdentityRole(role));
-                        }
-                    }
-                }
-            }
-
-            app.Run();
-        }
+using (var scope = app.Services.CreateScope())
+{
+    using (var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
+    {
+        await context.Database.EnsureCreatedAsync();
     }
 }
+
+using (var scope = app.Services.CreateScope())
+{
+    using (var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>())
+    {
+        var roles = new[] { "Oleg", "Admin", "Manager", "Member" };
+        foreach (var role in roles)
+            if (!await roleManager.RoleExistsAsync(role))
+                await roleManager.CreateAsync(new IdentityRole(role));
+    }
+}
+
+await app.RunAsync();
