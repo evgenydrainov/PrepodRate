@@ -17,7 +17,7 @@
         <input type="text" class="form-control" placeholder="ВУЗ" @bind-value="@_uni" @bind-value:event="oninput"/>
     </div>
     <div class="input-group" style="padding-bottom: 1rem;">
-        <input class="form-control" placeholder="Отзыв о преподавателе" @bind="@_review"/>
+        <input class="form-control" placeholder="Отзыв о преподавателе" @bind-value="@_review" @bind-value:event="oninput"/>
     </div>
     <div class="btn-group" role="group" style="margin-bottom: 1rem">
         <button class="btn btn-primary @(isFilled() ? "" : "disabled")" @onclick="AddReview">Добавить</button>
@@ -88,6 +88,7 @@ else
         rev.Rating = 5; // TODO
         rev.Body = _review;
         await db.Reviews.AddAsync(rev);
+        Switch();
         await db.SaveChangesAsync();
     }
 }
