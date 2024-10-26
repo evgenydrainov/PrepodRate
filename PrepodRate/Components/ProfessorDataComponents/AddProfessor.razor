@@ -1,0 +1,93 @@
+@using Microsoft.EntityFrameworkCore
+@using PrepodRate.Controllers
+@using PrepodRate.Data
+
+@inject ApplicationDbContext db
+
+@rendermode InteractiveServer
+
+@if(_isAdding)
+{
+    <div class="input-group" style="padding-bottom: 1rem">
+        <input type="text" class="form-control" placeholder="Имя" @bind-value="@_firstName" @bind-value:event="oninput"/>
+        <input type="text" class="form-control" placeholder="Фамилия" @bind-value="@_lastName" @bind-value:event="oninput"/>
+        <input type="text" class="form-control" placeholder="Отчество" @bind-value="@_patronymic" @bind-value:event="oninput"/>
+    </div>
+    <div class="input-group" style="padding-bottom: 1rem">
+        <input type="text" class="form-control" placeholder="ВУЗ" @bind-value="@_uni" @bind-value:event="oninput"/>
+    </div>
+    <div class="input-group" style="padding-bottom: 1rem;">
+        <input class="form-control" placeholder="Отзыв о преподавателе" @bind="@_review"/>
+    </div>
+    <div class="btn-group" role="group" style="margin-bottom: 1rem">
+        <button class="btn btn-primary @(isFilled() ? "" : "disabled")" @onclick="AddReview">Добавить</button>
+        <button class="btn btn-danger" @onclick="Switch">Отменить</button>
+    </div>
+}
+else 
+{
+    <button class="btn btn-primary" @onclick="Switch" style="margin-bottom: 1rem">Добавить препода</button>
+}
+
+@code {
+    private bool _isAdding = false;
+
+    private string _firstName = "";
+    private string _lastName = "";
+    private string _patronymic = "";
+    private string _uni = "";
+    private string _review = "";
+
+    private bool isFilled()
+    {
+        if (_firstName != "" && _lastName != "" && _patronymic != ""
+            && _uni != "" && _review != "")
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    private void Switch()
+    {
+        _isAdding ^= true;
+    }
+
+    private async void AddReview()
+    {
+        var professors = await db.Professors.ToListAsync();
+        int foundProfId = -1;
+        foreach (var prof in professors)
+        {
+            if (prof.Name == _firstName && prof.Surname == _lastName && prof.Patronymic == _patronymic && prof.University == _uni)
+            {
+                foundProfId = prof.Id;
+                break;
+            }
+        }
+
+        if (foundProfId == -1)
+        {
+            Professor prof = new Professor();
+            prof.Name = _firstName;
+            prof.Surname = _lastName;
+            prof.Patronymic = _patronymic;
+            prof.University = _uni;
+            
+            var result = await db.Professors.AddAsync(prof);
+            await db.SaveChangesAsync();
+
+            foundProfId = result.Entity.Id;
+        }
+
+        Review rev = new Review();
+        rev.ProfessorId = foundProfId;
+        rev.Rating = 5; // TODO
+        rev.Body = _review;
+        await db.Reviews.AddAsync(rev);
+        await db.SaveChangesAsync();
+    }
+}
