@@ -85,4 +85,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseWebSockets();
+
 await app.RunAsync();

@@ -1,10 +1,6 @@
 ﻿@page "/"
-@using Microsoft.EntityFrameworkCore
 @using PrepodRate.Components.ProfessorDataComponents
-@using PrepodRate.Controllers
-@using PrepodRate.Data
 
-@inject ApplicationDbContext db
 
 <PageTitle>Home</PageTitle>
 
@@ -15,32 +11,6 @@
 		<h1>HELLO, OLEG!!!</h1>
 	}
 	<AddProfessor/>
-	<div style="padding: 0.5rem 1rem 0.5rem 1rem;border: 1px solid black; border-radius: 15px">
-		@if (_professors is not null)
-		{
-			<div style="display: grid; grid-template-columns: 20% 1fr 1fr 2fr; gap: 0.5rem; align-content: center; padding-bottom: 0.5rem; padding-top: 0.5rem">
-				<p style="display: inline-block;margin: 0">Имя</p>
-				<p style="margin: 0" >Университет</p>
-				<p style="margin: 0">Количество отзвов</p>
-				<p style="margin: 0">Рейтинг</p>
-			</div>
-			@foreach (var prof in _professors)
-			{
-				<ProfessorDataOverview FirstName="@prof.Name" University="@prof.University" LastName="@prof.Surname" Patronymic="@prof.Patronymic" Rate="@(counter++*10)" RevCount="893"/>
-			}
-		}
-	</div>
-	
-	@code {
-		private int counter = 0;
-		private IEnumerable<Professor>? _professors = null;
 
-		protected override async Task OnInitializedAsync()
-		{
-			_professors = await db.Professors.ToListAsync();
-		}
-
-	}
-	
 </AuthorizeView>
 

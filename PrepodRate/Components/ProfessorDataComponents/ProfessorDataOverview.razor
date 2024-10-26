@@ -11,14 +11,21 @@
     public int Rate { get; set;  }
     [Parameter]
     public int RevCount { get; set;  }
+    [Parameter]
+    public int Id { get; set; }
 }
 
-<div style="display: grid; grid-template-columns: 20% 1fr 1fr 2fr; gap: 0.5rem; align-content: center; padding-bottom: 0.5rem; padding-top: 0.5rem">
-    <a href="" style="display: inline-block;margin: 0">@LastName @FirstName @Patronymic</a>
+<div style="display: grid; grid-template-columns: 20% 1fr 1fr 2fr 1fr; gap: 0.5rem; align-content: center; padding-bottom: 0.5rem; padding-top: 0.5rem">
+    <a href="/professor/@Id" style="display: inline-block;margin: 0">@LastName @FirstName @Patronymic</a>
     <p style="margin: 0" >@University</p>
     <p style="margin: 0">@RevCount</p>
+    
     <div style="border-radius: 5px; position: relative; height: 25px; width: 100%; overflow: hidden;">
         <span style="background-color: #f46565; width: 100%; position: absolute; pointer-events: none; height: 25px;">&nbsp;</span>
         <span style="background-color: #26b050; width: @Rate%; position: absolute; pointer-events: none; text-align: center; height: 25px;">@Rate%</span>
     </div>
+    @*<div style="position: relative; width: @(Rate)%; overflow: hidden;">
+        ⭐️⭐️⭐️⭐️⭐
+    </div>*@
+    
 </div>
