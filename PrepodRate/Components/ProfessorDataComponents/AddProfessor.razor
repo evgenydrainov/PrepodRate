@@ -37,7 +37,7 @@
                     case 1:
                         return "😵";
                     case 2:
-                        return "🫤";
+                        return "😬";
                     case 3:
                         return "😐";
                     case 4:
@@ -84,6 +84,7 @@ else
         _lastName = "";
         _review = "";
         _uni = "";
+        _rate = 1;
     }
 
 
@@ -120,19 +121,19 @@ else
 
         if (foundProfId == -1)
         {
-            Professor prof = new Professor();
+            var prof = new Professor();
             prof.Name = _firstName;
             prof.Surname = _lastName;
             prof.Patronymic = _patronymic;
             prof.University = _uni;
-            ResetData();
+            
             var result = await db.Professors.AddAsync(prof);
             await db.SaveChangesAsync();
 
             foundProfId = result.Entity.Id;
         }
         
-        Review rev = new Review();
+        var rev = new Review();
         rev.ProfessorId = foundProfId;
         rev.Rating = _rate;
         rev.Body = _review;
@@ -140,5 +141,6 @@ else
         await db.SaveChangesAsync();
         await child.RefreshData();
         Switch();
+        ResetData();
     }
 }
