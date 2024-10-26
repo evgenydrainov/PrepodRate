@@ -1,7 +1,7 @@
 @using Microsoft.EntityFrameworkCore
 @using PrepodRate.Controllers
 @using PrepodRate.Data
-
+@using System.Timers
 @inject ApplicationDbContext db
 
 @rendermode InteractiveServer
@@ -16,12 +16,47 @@
     <div class="input-group" style="padding-bottom: 1rem">
         <input type="text" class="form-control" placeholder="ВУЗ" @bind-value="@_uni" @bind-value:event="oninput"/>
     </div>
+    <div>
+        <p style="margin-bottom: 0">Оценка:</p>
+        <div style="display: flex; overflow: hidden; margin-bottom: 1em; gap: 0.2em">
+            <span style="cursor: pointer" @onclick="() => { _rate = 1; }">@(_rate >= 1 ? "⭐" : whatSmile())</span>
+            <span style="cursor: pointer" @onclick="() => { _rate = 2; }">@(_rate >= 2 ? "⭐" : whatSmile())</span>
+            <span style="cursor: pointer" @onclick="() => { _rate = 3; }">@(_rate >= 3 ? "⭐" : whatSmile())</span>
+            <span style="cursor: pointer" @onclick="() => { _rate = 4; }">@(_rate >= 4 ? "⭐" : whatSmile())</span>
+            <span style="cursor: pointer" @onclick="() => { _rate = 5; }">@(_rate == 5 ? "⭐": whatSmile())</span>
+            <span>@_rate/5</span>
+        </div>
+        @code {
+
+            private int _rate = 1;
+
+            private string whatSmile()
+            {
+                switch (_rate)
+                {
+                    case 1:
+                        return "😵";
+                    case 2:
+                        return "🫤";
+                    case 3:
+                        return "😐";
+                    case 4:
+                        return "😏";
+                    default:
+                        return "";
+
+                }
+            }
+
+        }
+    </div>
     <div class="input-group" style="padding-bottom: 1rem;">
         <input class="form-control" placeholder="Отзыв о преподавателе" @bind-value="@_review" @bind-value:event="oninput"/>
     </div>
     <div class="btn-group" role="group" style="margin-bottom: 1rem">
         <button class="btn btn-primary @(isFilled() ? "" : "disabled")" @onclick="AddReview">Добавить</button>
         <button class="btn btn-danger" @onclick="Switch">Отменить</button>
+        <button class="btn btn-secondary" @onclick="ResetData">Сбросить</button>
     </div>
 }
 else 
@@ -29,14 +64,28 @@ else
     <button class="btn btn-primary" @onclick="Switch" style="margin-bottom: 1rem">Добавить препода</button>
 }
 
+<ListOfProfessors @ref="child"/>
+
 @code {
     private bool _isAdding = false;
+    
+    private ListOfProfessors child;
 
     private string _firstName = "";
     private string _lastName = "";
     private string _patronymic = "";
     private string _uni = "";
     private string _review = "";
+
+    private void ResetData()
+    {
+        _patronymic = "";
+        _firstName = "";
+        _lastName = "";
+        _review = "";
+        _uni = "";
+    }
+
 
     private bool isFilled()
     {
@@ -56,7 +105,7 @@ else
         _isAdding ^= true;
     }
 
-    private async void AddReview()
+    private async Task AddReview()
     {
         var professors = await db.Professors.ToListAsync();
         int foundProfId = -1;
@@ -76,19 +125,20 @@ else
             prof.Surname = _lastName;
             prof.Patronymic = _patronymic;
             prof.University = _uni;
-            
+            ResetData();
             var result = await db.Professors.AddAsync(prof);
             await db.SaveChangesAsync();
 
             foundProfId = result.Entity.Id;
         }
-
+        
         Review rev = new Review();
         rev.ProfessorId = foundProfId;
-        rev.Rating = 5; // TODO
+        rev.Rating = _rate;
         rev.Body = _review;
         await db.Reviews.AddAsync(rev);
-        Switch();
         await db.SaveChangesAsync();
+        await child.RefreshData();
+        Switch();
     }
 }

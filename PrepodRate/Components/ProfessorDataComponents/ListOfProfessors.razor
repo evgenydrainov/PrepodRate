@@ -1,0 +1,40 @@
+@using Microsoft.EntityFrameworkCore
+@using PrepodRate.Controllers
+@using PrepodRate.Data
+
+@inject ApplicationDbContext db
+
+@rendermode InteractiveServer
+
+<div style="padding: 0.5rem 1rem 0.5rem 1rem;border: 1px solid black; border-radius: 15px">
+    @if (_professors is not null)
+    {
+        <div style="display: grid; grid-template-columns: 20% 1fr 1fr 2fr; gap: 0.5rem; align-content: center; padding-bottom: 0.5rem; padding-top: 0.5rem">
+            <p style="display: inline-block;margin: 0">Имя</p>
+            <p style="margin: 0" >Университет</p>
+            <p style="margin: 0">Количество отзвов</p>
+            <p style="margin: 0">Рейтинг</p>
+        </div>
+        @foreach (var prof in _professors)
+        {
+            <ProfessorDataOverview FirstName="@prof.name" University="@prof.university" LastName="@prof.surname" Patronymic="@prof.patronymic" Rate="@prof.rating_percent" RevCount="@prof.num_reviews" Id="@prof.id"/>
+        }
+    }
+</div>
+
+@code {
+    private List<Stuff.ProfessorInfo>? _professors = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+    
+    public async Task RefreshData()
+    {
+        _professors = await Stuff.GetAllProfessors(db);
+        
+        StateHasChanged();
+    }
+
+}

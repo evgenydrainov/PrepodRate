@@ -1,0 +1,45 @@
+@page "/professor/{Id:int}"
+
+@using Microsoft.CodeAnalysis.CSharp
+@using Microsoft.CodeAnalysis.CSharp.Syntax
+@using Microsoft.EntityFrameworkCore
+@using PrepodRate.Controllers
+@using PrepodRate.Data
+
+@inject ApplicationDbContext db
+
+<PageTitle>@Id</PageTitle>
+
+<div>@Id</div>
+
+@if (_info is not null)
+{
+    <p>@_info.name</p>
+    <p>@_info.surname</p>
+    <p>@_info.patronymic</p>
+    <p>@_info.university</p>
+    <p>num reviews: @_info.num_reviews</p>
+    <p>rating: @_info.rating</p>
+}
+else
+{
+    <p>Invalid professor id.</p>
+}
+
+@foreach (var rev in _info.reviews)
+{
+    <p>@rev.Body @rev.Rating</p>
+}
+@code {
+    
+    [Parameter]
+    public int Id { get; set; }
+
+    private Stuff.ProfessorInfo? _info = null;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _info = await Stuff.GetProfessorInfo(db, Id);
+    }
+
+}
