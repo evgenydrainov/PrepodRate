@@ -7,5 +7,6 @@ namespace PrepodRate.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
-    DbSet<HyiModel> HyiSet { get; set; }
+    public DbSet<Professor> Professors { get; set; }
+	public DbSet<Review> Reviews { get; set; }
 }
