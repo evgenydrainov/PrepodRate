@@ -14,22 +14,23 @@
 
 @if (_info is not null)
 {
-    <p>@_info.name</p>
-    <p>@_info.surname</p>
-    <p>@_info.patronymic</p>
-    <p>@_info.university</p>
-    <p>num reviews: @_info.num_reviews</p>
-    <p>rating: @_info.rating</p>
+    <p>@_info.Name</p>
+    <p>@_info.Surname</p>
+    <p>@_info.Patronymic</p>
+    <p>@_info.University</p>
+    <p>ReviewCount: @_info.ReviewCount</p>
+    <p>Rating: @_info.Rating</p>
+
+    @foreach (var rev in _info.Reviews)
+    {
+        <p>@rev.Body @rev.Rating</p>
+    }
 }
 else
 {
     <p>Invalid professor id.</p>
 }
 
-@foreach (var rev in _info.reviews)
-{
-    <p>@rev.Body @rev.Rating</p>
-}
 @code {
     
     [Parameter]

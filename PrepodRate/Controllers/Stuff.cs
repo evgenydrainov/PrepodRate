@@ -7,18 +7,18 @@ public class Stuff
 {
     public class ProfessorInfo
     {
-        public Professor prof;
-        public List<Review> reviews;
-        public int num_reviews;
-        public float rating;
+        public Professor Prof;
+        public List<Review> Reviews;
+        public int ReviewCount;
+        public float Rating;
         
-        public string name => prof.Name;
-        public string surname => prof.Surname;
-        public string patronymic => prof.Patronymic;
-        public string university => prof.University;
+        public string Name => Prof.Name;
+        public string Surname => Prof.Surname;
+        public string Patronymic => Prof.Patronymic;
+        public string University => Prof.University;
+        public int Id => Prof.Id;
 
-        public int rating_percent => (int)(rating * 20f);
-        public int id => prof.Id;
+        public int RatingPercent => (int)(Rating * 20f);
     }
 
     public static async Task<ProfessorInfo?> GetProfessorInfo(ApplicationDbContext db, int id)
@@ -49,10 +49,10 @@ public class Stuff
         rating /= (float)reviews.Count;
 
         ProfessorInfo result = new ProfessorInfo();
-        result.prof = prof;
-        result.reviews = reviews;
-        result.num_reviews = reviews.Count;
-        result.rating = rating;
+        result.Prof = prof;
+        result.Reviews = reviews;
+        result.ReviewCount = reviews.Count;
+        result.Rating = rating;
         return result;
     }
 
