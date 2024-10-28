@@ -90,15 +90,11 @@ else
 
     private bool isFilled()
     {
-        if (_firstName != "" && _lastName != "" && _patronymic != ""
-            && _uni != "" && _review != "")
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return !string.IsNullOrWhiteSpace(_firstName)
+               && !string.IsNullOrWhiteSpace(_lastName)
+               && !string.IsNullOrWhiteSpace(_patronymic)
+               && !string.IsNullOrWhiteSpace(_uni)
+               && !string.IsNullOrWhiteSpace(_review);
     }
     
     private void Switch()
@@ -108,38 +104,34 @@ else
 
     private async Task AddReview()
     {
-        var professors = await db.Professors.ToListAsync();
-        int foundProfId = -1;
-        foreach (var prof in professors)
-        {
-            if (prof.Name == _firstName && prof.Surname == _lastName && prof.Patronymic == _patronymic && prof.University == _uni)
-            {
-                foundProfId = prof.Id;
-                break;
-            }
-        }
+        var professor = await db.Professors.FirstOrDefaultAsync(x =>
+            x.Name == _firstName
+            && x.Surname == _lastName
+            && x.Patronymic == _patronymic
+            && x.University == _uni);
 
-        if (foundProfId == -1)
+        if (professor is null)
         {
-            var prof = new Professor();
-            prof.Name = _firstName;
-            prof.Surname = _lastName;
-            prof.Patronymic = _patronymic;
-            prof.University = _uni;
-            
-            var result = await db.Professors.AddAsync(prof);
+            var result = await db.Professors.AddAsync(new Professor(){
+                Name = _firstName,
+                Surname = _lastName,
+                Patronymic = _patronymic,
+                University = _uni
+            });
             await db.SaveChangesAsync();
-
-            foundProfId = result.Entity.Id;
+            
+            professor = result.Entity;
         }
+
+        var review = new Review();
+        review.ProfessorId = professor.Id;
+        review.Rating = _rate;
+        review.Body = _review;
         
-        var rev = new Review();
-        rev.ProfessorId = foundProfId;
-        rev.Rating = _rate;
-        rev.Body = _review;
-        await db.Reviews.AddAsync(rev);
+        await db.Reviews.AddAsync(review);
         await db.SaveChangesAsync();
         await child.RefreshData();
+        
         Switch();
         ResetData();
     }
